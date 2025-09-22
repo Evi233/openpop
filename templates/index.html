@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}消息统计{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="alert alert-info mb-4">
+        <h5>当前机器人状态</h5>
+        <div class="row">
+            <div class="col-md-3">
+                <i class="bi bi-pc-display"></i> 电脑使用: 
+                <strong>{% if bot_status.computer_access %}允许{% else %}禁止{% endif %}</strong>
+            </div>
+            <div class="col-md-3">
+                <i class="bi bi-globe"></i> 联网搜索: 
+                <strong>{% if bot_status.web_search %}允许{% else %}禁止{% endif %}</strong>
+            </div>
+            <div class="col-md-3">
+                <i class="bi bi-lightbulb"></i> 心流模式: 
+                <strong>{% if bot_status.flow_mode %}开启{% else %}关闭{% endif %}</strong>
+            </div>
+            <div class="col-md-3">
+                <i class="bi bi-shield"></i> 内容过滤: 
+                <strong>{% if bot_status.filter_enabled %}开启{% else %}关闭{% endif %}</strong>
+            </div>
+        </div>
+        <div class="mt-2">
+            <a href="{{ url_for('user_manage') }}" class="btn btn-sm btn-outline-primary">管理设置</a>
+        </div>
+    </div>
+
+    {% if stats %}
+    <h1 class="mb-4">消息统计概览</h1>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h5 class="card-title">总消息数</h5>
+                    <div class="display-4 text-primary">{{ stats.total_messages }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h5 class="card-title">用户消息</h5>
+                    <div class="display-4 text-info">{{ stats.human_messages }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h5 class="card-title">BOT消息</h5>
+                    <div class="display-4 text-success">{{ stats.bot_messages }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">按小时分布</h5>
+                    <canvas id="hourChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">按天分布</h5>
+                    <canvas id="dayChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">用户消息列表</h5>
+                    <div class="message-list">
+                        {% for msg in stats.human_messages_list %}
+                        <div class="message-item human">
+                            <div class="timestamp">{{ msg.timestamp }}</div>
+                            <div class="message-content">{{ msg.message }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">BOT消息列表</h5>
+                    <div class="message-list">
+                        {% for msg in stats.bot_messages_list %}
+                        <div class="message-item bot">
+                            <div class="timestamp">{{ msg.timestamp }}</div>
+                            <div class="message-content">{{ msg.message }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-muted text-center mt-3">
+        已处理 {{ processed_files }} 个文件 | 最后更新时间: {{ now.strftime("%Y-%m-%d %H:%M:%S") }}
+    </div>
+    
+    {% else %}
+    <div class="alert alert-warning">
+        没有找到任何消息文件。请确保在 data/temp_memory 目录中放置了消息文件。
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Hour distribution chart
+    const hourCtx = document.getElementById('hourChart').getContext('2d');
+    const hourChart = new Chart(hourCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ hours|tojson }},
+            datasets: [{
+                label: '消息数量',
+                data: {{ hour_counts|tojson }},
+                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '消息数量'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: '小时'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Day distribution chart
+    const dayCtx = document.getElementById('dayChart').getContext('2d');
+    const dayChart = new Chart(dayCtx, {
+        type: 'line',
+        data: {
+            labels: {{ days|tojson }},
+            datasets: [{
+                label: '消息数量',
+                data: {{ day_counts|tojson }},
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2,
+                tension: 0.1,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '消息数量'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: '日期'
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

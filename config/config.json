@@ -1,0 +1,17 @@
+{
+    "name": "泡泡",
+    "other_name": [""],
+    "personality": "123",
+    "admin": {
+                "name": "Evidence",
+                "command_group": "泡泡测试1"
+            },
+    "chat":{
+        "base_url": "https://api.deepseek.com",
+        "key": ""
+    },
+    "image_processor_key": "",
+    "long_term_memory_key": "",
+    "moderator_key": ""
+
+}

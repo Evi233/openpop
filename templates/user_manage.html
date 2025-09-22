@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}用户管理{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="my-4">用户管理面板</h2>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>修改密码</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('change_password') }}">
+                <div class="mb-3">
+                    <label for="current_password" class="form-label">当前密码</label>
+                    <input type="password" class="form-control" id="current_password" name="current_password" required>
+                </div>
+                <div class="mb-3">
+                    <label for="new_password" class="form-label">新密码</label>
+                    <input type="password" class="form-control" id="new_password" name="new_password" required>
+                </div>
+                <div class="mb-3">
+                    <label for="confirm_password" class="form-label">确认新密码</label>
+                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">更改密码</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5>机器人状态管理</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('update_bot_status') }}">
+                <div class="mb-3 form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="computer_access" name="computer_access" 
+                           {% if session.get('bot_status', {}).get('computer_access', True) %}checked{% endif %}>
+                    <label class="form-check-label" for="computer_access">允许泡泡使用电脑</label>
+                </div>
+                
+                <div class="mb-3 form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="web_search" name="web_search" 
+                           {% if session.get('bot_status', {}).get('web_search', True) %}checked{% endif %}>
+                    <label class="form-check-label" for="web_search">允许联网搜索</label>
+                </div>
+                
+                <div class="mb-3 form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="flow_mode" name="flow_mode" 
+                           {% if session.get('bot_status', {}).get('flow_mode', False) %}checked{% endif %}>
+                    <label class="form-check-label" for="flow_mode">心流模式</label>
+                    <small class="text-muted d-block">开启后泡泡会更专注当前话题</small>
+                </div>
+                
+                <div class="mb-3 form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="filter_enabled" name="filter_enabled" 
+                           {% if session.get('bot_status', {}).get('filter_enabled', True) and session.get('role') == 'admin' %}checked
+                           {% elif session.get('role') != 'admin' %}disabled{% endif %}>
+                    <label class="form-check-label" for="filter_enabled">内容过滤器</label>
+                    {% if session.get('role') != 'admin' %}
+                    <small class="text-muted d-block">过滤器状态由管理员控制</small>
+                    {% endif %}
+                </div>
+                
+                <button type="submit" class="btn btn-primary">保存设置</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

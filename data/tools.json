@@ -1,0 +1,21 @@
+[
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "Get weather of a location. The user should supply a location first.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "要查询的城市，注意必须精细到城市，对用户的输出需要使用<message></message>包围，否则无法被解析"
+                    }
+                },
+                "required": [
+                    "location"
+                ]
+            }
+        }
+    }
+]
